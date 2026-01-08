@@ -310,30 +310,30 @@ public class LogisticsServiceImpl implements LogisticsService {
                     orderId, logisticsId, courierCompany, trackingNo, receiverName);
             
             // 发送订阅消息通知
-            sendShippingNotification(orderInfo.getUserId(), orderNo, courierCompany, trackingNo);
+            sendShippingNotification(orderInfo.getUserId(), orderNo, receiverName, courierCompany, trackingNo, "已发货");
         }
     }
     
-    private void sendShippingNotification(String userId, String orderNo, String courierCompany, String trackingNo) {
+    private void sendShippingNotification(String userId, String orderNo, String receiverName, String courierCompany, String trackingNo, String status) {
         try {
-            String shippedTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            
             ApiResponse<String> openIdResponse = userServiceClient.getUserOpenId(userId);
             if (openIdResponse != null && openIdResponse.getData() != null) {
                 String openId = openIdResponse.getData();
+                log.info("准备发送订阅消息: openId={}, userId={}, orderNo={}", openId, userId, orderNo);
+                
                 boolean success = wechatSubscribeService.sendShippingNotification(
-                    openId, orderNo, courierCompany, trackingNo, shippedTime
+                    openId, receiverName, orderNo, courierCompany, trackingNo, status
                 );
                 if (success) {
-                    log.info("发货通知发送成功: userId={}, openId={}", userId, openId);
+                    log.info("发货通知发送成功: orderNo={}, openId={}", orderNo, openId);
                 } else {
-                    log.warn("发货通知发送失败: userId={}", userId);
+                    log.warn("发货通知发送失败: orderNo={}", orderNo);
                 }
             } else {
                 log.warn("获取用户 openId 失败: userId={}", userId);
             }
         } catch (Exception e) {
-            log.error("发送发货通知异常: userId={}", userId, e);
+            log.error("发送发货通知异常: userId={}, orderNo={}", userId, orderNo, e);
         }
     }
     
@@ -450,7 +450,7 @@ public class LogisticsServiceImpl implements LogisticsService {
                     String timeStr = trackJson.getString("ftime");
                     long time = 0;
                     try {
-                        time = LocalDateTime.parse(timeStr, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                        time = LocalDateTime.parse(timeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                                 .atZone(ZoneId.systemDefault())
                                 .toInstant()
                                 .toEpochMilli();
@@ -501,7 +501,7 @@ public class LogisticsServiceImpl implements LogisticsService {
             long time = 0;
             
             try {
-                time = LocalDateTime.parse(timeStr, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                time = LocalDateTime.parse(timeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                         .atZone(ZoneId.systemDefault())
                         .toInstant()
                         .toEpochMilli();

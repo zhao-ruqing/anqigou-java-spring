@@ -8,5 +8,5 @@ public interface WechatSubscribeService {
     
     boolean sendSubscribeMessage(String openId, String templateId, Map<String, Object> data);
     
-    boolean sendShippingNotification(String openId, String orderNo, String courierCompany, String trackingNo, String shippedTime);
+    boolean sendShippingNotification(String openId, String receiverName, String orderNo, String courierCompany, String trackingNo, String status);
 }
