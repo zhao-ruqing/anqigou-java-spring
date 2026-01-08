@@ -110,4 +110,13 @@ public class AuthController {
         authService.updateUserInfo(userId, userInfo);
         return ApiResponse.success("更新成功");
     }
+    
+    /**
+     * 获取用户openId（内部接口）
+     */
+    @GetMapping("/internal/{userId}/openid")
+    public ApiResponse<String> getUserOpenId(@PathVariable String userId) {
+        String openId = authService.getUserOpenId(userId);
+        return ApiResponse.success(openId);
+    }
 }

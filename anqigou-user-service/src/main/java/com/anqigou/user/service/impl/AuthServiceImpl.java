@@ -375,4 +375,15 @@ public class AuthServiceImpl implements AuthService {
         }
         return jwtUtil.getUserIdFromToken(token);
     }
+    
+    @Override
+    public String getUserOpenId(String userId) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", userId);
+        User user = userMapper.selectOne(queryWrapper);
+        if (user != null) {
+            return user.getWechatOpenId();
+        }
+        return null;
+    }
 }

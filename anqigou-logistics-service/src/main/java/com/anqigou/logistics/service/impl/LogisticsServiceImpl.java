@@ -2,6 +2,7 @@ package com.anqigou.logistics.service.impl;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import com.anqigou.common.exception.BizException;
 import com.anqigou.common.response.ApiResponse;
 import com.anqigou.common.util.StringUtil;
 import com.anqigou.logistics.client.OrderServiceClient;
+import com.anqigou.logistics.client.UserServiceClient;
 import com.anqigou.logistics.dto.LogisticsDetailDTO;
 import com.anqigou.logistics.dto.LogisticsTrackDTO;
 import com.anqigou.logistics.dto.OrderInfoDTO;
@@ -29,6 +31,7 @@ import com.anqigou.logistics.mapper.LogisticsEvaluationMapper;
 import com.anqigou.logistics.mapper.LogisticsMapper;
 import com.anqigou.logistics.mapper.LogisticsTrackMapper;
 import com.anqigou.logistics.service.LogisticsService;
+import com.anqigou.logistics.service.WechatSubscribeService;
 import com.anqigou.logistics.util.Kuaidi100Client;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
@@ -55,6 +58,12 @@ public class LogisticsServiceImpl implements LogisticsService {
     
     @Autowired
     private OrderServiceClient orderServiceClient;
+    
+    @Autowired
+    private UserServiceClient userServiceClient;
+    
+    @Autowired
+    private WechatSubscribeService wechatSubscribeService;
     
     // 快递公司列表，用于随机选择
     private static final List<String> COURIER_COMPANIES = List.of("顺丰速递", "圆通速递", "中通快递", "申通快递", "韵达快递");
@@ -299,6 +308,32 @@ public class LogisticsServiceImpl implements LogisticsService {
             
             log.info("已创建新的物流信息: orderId={}, logisticsId={}, courierCompany={}, trackingNo={}, receiverName={}", 
                     orderId, logisticsId, courierCompany, trackingNo, receiverName);
+            
+            // 发送订阅消息通知
+            sendShippingNotification(orderInfo.getUserId(), orderNo, courierCompany, trackingNo);
+        }
+    }
+    
+    private void sendShippingNotification(String userId, String orderNo, String courierCompany, String trackingNo) {
+        try {
+            String shippedTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            
+            ApiResponse<String> openIdResponse = userServiceClient.getUserOpenId(userId);
+            if (openIdResponse != null && openIdResponse.getData() != null) {
+                String openId = openIdResponse.getData();
+                boolean success = wechatSubscribeService.sendShippingNotification(
+                    openId, orderNo, courierCompany, trackingNo, shippedTime
+                );
+                if (success) {
+                    log.info("发货通知发送成功: userId={}, openId={}", userId, openId);
+                } else {
+                    log.warn("发货通知发送失败: userId={}", userId);
+                }
+            } else {
+                log.warn("获取用户 openId 失败: userId={}", userId);
+            }
+        } catch (Exception e) {
+            log.error("发送发货通知异常: userId={}", userId, e);
         }
     }
     

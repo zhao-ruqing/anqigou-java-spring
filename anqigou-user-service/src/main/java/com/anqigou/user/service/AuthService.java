@@ -47,4 +47,9 @@ public interface AuthService {
      * 验证token
      */
     String validateToken(String token);
+    
+    /**
+     * 获取用户openId
+     */
+    String getUserOpenId(String userId);
 }

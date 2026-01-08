@@ -71,3 +71,11 @@ kuaidi100:
   secret: EQSKhWGU7976
   # 快递公司编码映射
   company-code-map: '{"顺丰":"sf","中通":"zto","圆通":"yto","申通":"sto","韵达":"yd"}'
+
+# 微信小程序配置
+wechat:
+  miniapp:
+    appid: wx8dbab4f617ac7415
+    secret: 397b54148106ca36fa1217e6afd9d108
+  subscribe:
+    template-id: d0sQiPZZa1vh3Hp6Q0N9FzXe1bDIEOFic8cv80Xv78E
