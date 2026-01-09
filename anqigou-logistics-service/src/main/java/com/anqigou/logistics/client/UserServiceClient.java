@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.anqigou.common.response.ApiResponse;
 
-@FeignClient(name = "anqigou-user-service", path = "/user")
+@FeignClient(name = "anqigou-user-service", path = "/auth")
 public interface UserServiceClient {
     
     @GetMapping("/internal/{userId}/openid")

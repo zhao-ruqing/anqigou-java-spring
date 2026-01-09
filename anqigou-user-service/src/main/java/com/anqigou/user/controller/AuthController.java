@@ -74,8 +74,15 @@ public class AuthController {
      */
     @PostMapping("/wechat-login")
     public ApiResponse<LoginResponse> wechatLogin(@RequestBody WechatLoginRequest request) {
-        LoginResponse response = authService.wechatLogin(request.getCode());
-        return ApiResponse.success("登录成功", response);
+        try {
+            log.info("微信登录请求: code={}, userInfo={}", request.getCode(), request.getUserInfo() != null ? request.getUserInfo().getNickName() : "无");
+            LoginResponse response = authService.wechatLogin(request.getCode());
+            log.info("微信登录成功: userId={}", response.getUserId());
+            return ApiResponse.success("登录成功", response);
+        } catch (Exception e) {
+            log.error("微信登录失败: {}", e.getMessage(), e);
+            return ApiResponse.failure(500, "微信登录失败: " + e.getMessage());
+        }
     }
     
     /**
@@ -83,6 +90,7 @@ public class AuthController {
      */
     static class WechatLoginRequest {
         private String code;
+        private UserInfo userInfo;
         
         public String getCode() {
             return code;
@@ -90,6 +98,80 @@ public class AuthController {
         
         public void setCode(String code) {
             this.code = code;
+        }
+        
+        public UserInfo getUserInfo() {
+            return userInfo;
+        }
+        
+        public void setUserInfo(UserInfo userInfo) {
+            this.userInfo = userInfo;
+        }
+        
+        static class UserInfo {
+            private String nickName;
+            private String avatarUrl;
+            private String gender;
+            private String city;
+            private String province;
+            private String country;
+            private String language;
+            
+            public String getNickName() {
+                return nickName;
+            }
+            
+            public void setNickName(String nickName) {
+                this.nickName = nickName;
+            }
+            
+            public String getAvatarUrl() {
+                return avatarUrl;
+            }
+            
+            public void setAvatarUrl(String avatarUrl) {
+                this.avatarUrl = avatarUrl;
+            }
+            
+            public String getGender() {
+                return gender;
+            }
+            
+            public void setGender(String gender) {
+                this.gender = gender;
+            }
+            
+            public String getCity() {
+                return city;
+            }
+            
+            public void setCity(String city) {
+                this.city = city;
+            }
+            
+            public String getProvince() {
+                return province;
+            }
+            
+            public void setProvince(String province) {
+                this.province = province;
+            }
+            
+            public String getCountry() {
+                return country;
+            }
+            
+            public void setCountry(String country) {
+                this.country = country;
+            }
+            
+            public String getLanguage() {
+                return language;
+            }
+            
+            public void setLanguage(String language) {
+                this.language = language;
+            }
         }
     }
     
@@ -115,8 +197,15 @@ public class AuthController {
      * 获取用户openId（内部接口）
      */
     @GetMapping("/internal/{userId}/openid")
-    public ApiResponse<String> getUserOpenId(@PathVariable String userId) {
-        String openId = authService.getUserOpenId(userId);
-        return ApiResponse.success(openId);
+    public ApiResponse<String> getUserOpenId(@PathVariable("userId") String userId) {
+        try {
+            log.info("获取用户openId请求: userId={}", userId);
+            String openId = authService.getUserOpenId(userId);
+            log.info("获取用户openId成功: userId={}, openId={}", userId, openId);
+            return ApiResponse.success(openId);
+        } catch (Exception e) {
+            log.error("获取用户openId失败: {}", e.getMessage(), e);
+            return ApiResponse.failure(500, "获取用户openId失败: " + e.getMessage());
+        }
     }
 }

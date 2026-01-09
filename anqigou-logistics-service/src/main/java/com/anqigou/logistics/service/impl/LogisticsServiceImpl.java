@@ -221,6 +221,18 @@ public class LogisticsServiceImpl implements LogisticsService {
             logisticsMapper.updateById(existingLogistics);
             log.info("已更新物流信息: orderId={}, courierCompany={}, trackingNo={}", 
                     orderId, courierCompany, trackingNo);
+            
+            // 获取订单信息并发送订阅消息
+            try {
+                ApiResponse<OrderInfoDTO> orderResponse = orderServiceClient.getOrderInfo(orderId);
+                if (orderResponse != null && orderResponse.getData() != null) {
+                    OrderInfoDTO orderInfo = orderResponse.getData();
+                    sendShippingNotification(orderInfo.getUserId(), existingLogistics.getOrderNo(), 
+                            existingLogistics.getReceiverName(), courierCompany, trackingNo, "已发货");
+                }
+            } catch (Exception e) {
+                log.error("获取订单信息失败: orderId={}", orderId, e);
+            }
         } else {
             // 从订单服务获取真实订单信息
             OrderInfoDTO orderInfo = null;
