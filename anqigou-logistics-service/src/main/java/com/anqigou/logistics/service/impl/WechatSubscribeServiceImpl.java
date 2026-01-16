@@ -100,6 +100,18 @@ public class WechatSubscribeServiceImpl implements WechatSubscribeService {
     
     @Override
     public boolean sendSubscribeMessage(String openId, String templateId, Map<String, Object> data) {
+        return sendSubscribeMessage(openId, templateId, data, null);
+    }
+    
+    /**
+     * 发送订阅消息
+     * @param openId 微信用户openId
+     * @param templateId 模板ID
+     * @param data 消息数据
+     * @param pagepath 小程序页面路径，格式以/开头
+     * @return 是否发送成功
+     */
+    public boolean sendSubscribeMessage(String openId, String templateId, Map<String, Object> data, String pagepath) {
         try {
             log.info("开始获取 access_token");
             String accessToken = getAccessToken();
@@ -116,7 +128,15 @@ public class WechatSubscribeServiceImpl implements WechatSubscribeService {
             requestBody.put("touser", openId);
             requestBody.put("template_id", templateId);
             requestBody.put("data", data);
-            requestBody.put("miniprogram", Map.of("appid", wechatSubscribeConfig.getAppId()));
+            
+            // 构建miniprogram节点，包含appid和pagepath
+            Map<String, Object> miniprogram = new HashMap<>();
+            miniprogram.put("appid", wechatSubscribeConfig.getAppId());
+            if (pagepath != null) {
+                miniprogram.put("pagepath", pagepath);
+                log.info("添加小程序页面路径: {}", pagepath);
+            }
+            requestBody.put("miniprogram", miniprogram);
             
             String requestBodyStr = JSON.toJSONString(requestBody);
             log.info("准备发送订阅消息请求: {}", requestBodyStr);
@@ -201,7 +221,9 @@ public class WechatSubscribeServiceImpl implements WechatSubscribeService {
             log.info("模板参数构建完成: {}", JSON.toJSONString(data));
             log.info("模板ID: {}", wechatSubscribeConfig.getTemplateId());
             
-            boolean success = sendSubscribeMessage(openId, wechatSubscribeConfig.getTemplateId(), data);
+            // 构建小程序页面路径，包含订单号参数
+            String pagepath = "/pages/order/detail?orderNo=" + orderNo;
+            boolean success = sendSubscribeMessage(openId, wechatSubscribeConfig.getTemplateId(), data, pagepath);
             
             if (success) {
                 log.info("========== 订阅消息发送成功 ==========");
