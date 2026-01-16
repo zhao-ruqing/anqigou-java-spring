@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
  * 订阅消息控制器
  */
 @RestController
-@RequestMapping("/api/subscribe")
+@RequestMapping("/subscribe")
 @Slf4j
 public class SubscribeController {
     

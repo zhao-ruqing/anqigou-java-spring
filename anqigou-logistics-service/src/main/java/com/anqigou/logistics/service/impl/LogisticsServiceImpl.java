@@ -328,24 +328,61 @@ public class LogisticsServiceImpl implements LogisticsService {
     
     private void sendShippingNotification(String userId, String orderNo, String receiverName, String courierCompany, String trackingNo, String status) {
         try {
+            log.info("[sendShippingNotification] 开始处理发货通知: userId={}, orderNo={}, status={}", userId, orderNo, status);
+            
+            // 1. 调用用户服务获取openId
+            log.info("[sendShippingNotification] 开始调用用户服务获取openId: userId={}", userId);
             ApiResponse<String> openIdResponse = userServiceClient.getUserOpenId(userId);
-            if (openIdResponse != null && openIdResponse.getData() != null) {
+            
+            // 2. 检查响应是否为空
+            if (openIdResponse == null) {
+                log.error("[sendShippingNotification] 调用用户服务获取openId返回null: userId={}, orderNo={}", userId, orderNo);
+                return;
+            }
+            
+            // 3. 记录完整的响应信息（改为info级别，确保日志被记录）
+            log.info("[sendShippingNotification] 获取用户openId响应详情: userId={}, orderNo={}, code={}, message={}, data={}", 
+                    userId, orderNo, openIdResponse.getCode(), openIdResponse.getMessage(), openIdResponse.getData());
+            
+            // 4. 检查响应状态码
+            Integer responseCode = openIdResponse.getCode();
+            if (responseCode == null) {
+                log.error("[sendShippingNotification] 响应状态码为null: userId={}, orderNo={}", userId, orderNo);
+                return;
+            }
+            
+            // 5. 检查是否成功获取openId
+            if (responseCode == 0) {
                 String openId = openIdResponse.getData();
-                log.info("准备发送订阅消息: openId={}, userId={}, orderNo={}", openId, userId, orderNo);
                 
-                boolean success = wechatSubscribeService.sendShippingNotification(
-                    openId, receiverName, orderNo, courierCompany, trackingNo, status
-                );
-                if (success) {
-                    log.info("发货通知发送成功: orderNo={}, openId={}", orderNo, openId);
+                if (openId != null) {
+                    log.info("[sendShippingNotification] 成功获取用户openId: userId={}, openId={}, orderNo={}", userId, openId, orderNo);
+                    
+                    // 6. 发送订阅消息
+                    log.info("[sendShippingNotification] 准备发送订阅消息: openId={}, orderNo={}, courierCompany={}, trackingNo={}", 
+                            openId, orderNo, courierCompany, trackingNo);
+                    
+                    boolean success = wechatSubscribeService.sendShippingNotification(
+                        openId, receiverName, orderNo, courierCompany, trackingNo, status
+                    );
+                    
+                    if (success) {
+                        log.info("[sendShippingNotification] 发货通知发送成功: orderNo={}, openId={}", orderNo, openId);
+                    } else {
+                        log.warn("[sendShippingNotification] 发货通知发送失败: orderNo={}, openId={}", orderNo, openId);
+                    }
                 } else {
-                    log.warn("发货通知发送失败: orderNo={}", orderNo);
+                    log.warn("[sendShippingNotification] 响应中openId为null: userId={}, orderNo={}, message={}", 
+                            userId, orderNo, openIdResponse.getMessage());
                 }
             } else {
-                log.warn("获取用户 openId 失败: userId={}", userId);
+                log.error("[sendShippingNotification] 获取用户openId失败，响应码非0: userId={}, orderNo={}, code={}, message={}", 
+                        userId, orderNo, responseCode, openIdResponse.getMessage());
             }
         } catch (Exception e) {
-            log.error("发送发货通知异常: userId={}, orderNo={}", userId, orderNo, e);
+            log.error("[sendShippingNotification] 发送发货通知异常: userId={}, orderNo={}", userId, orderNo, e);
+            // 打印完整的堆栈信息，便于调试
+            log.error("[sendShippingNotification] 异常详情: ", e);
         }
     }
     

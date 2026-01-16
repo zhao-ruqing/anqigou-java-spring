@@ -176,27 +176,27 @@ public class WechatSubscribeServiceImpl implements WechatSubscribeService {
             // 收件人
             Map<String, Object> receiverNameData = new HashMap<>();
             receiverNameData.put("value", receiverName);
-            data.put("thing1", receiverNameData);
+            data.put("name15", receiverNameData);
             
             // 订单号
             Map<String, Object> orderNoData = new HashMap<>();
             orderNoData.put("value", orderNo);
-            data.put("character_string2", orderNoData);
+            data.put("character_string1", orderNoData);
             
             // 快递公司
             Map<String, Object> courierCompanyData = new HashMap<>();
             courierCompanyData.put("value", courierCompany);
-            data.put("thing3", courierCompanyData);
+            data.put("name9", courierCompanyData);
             
             // 运单号
             Map<String, Object> trackingNoData = new HashMap<>();
             trackingNoData.put("value", trackingNo);
-            data.put("character_string4", trackingNoData);
+            data.put("character_string10", trackingNoData);
             
             // 状态
             Map<String, Object> statusData = new HashMap<>();
             statusData.put("value", status);
-            data.put("thing5", statusData);
+            data.put("phrase3", statusData);
             
             log.info("模板参数构建完成: {}", JSON.toJSONString(data));
             log.info("模板ID: {}", wechatSubscribeConfig.getTemplateId());

@@ -54,7 +54,7 @@ spring:
         - id: logistics-service
           uri: lb://anqigou-logistics-service
           predicates:
-            - Path=/api/logistics/**
+            - Path=/api/logistics/**,/api/subscribe/**
           filters:
             - StripPrefix=1
 
